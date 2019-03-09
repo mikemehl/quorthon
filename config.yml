@@ -1,3 +1,4 @@
 ---
 site:
   title: "Test Site"
+pretty_urls: True 
