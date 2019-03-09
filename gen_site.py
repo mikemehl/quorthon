@@ -5,6 +5,8 @@ import jinja2
 import markdown
 import frontmatter
 import os
+import shutil
+from log import info, error, debug
 
 def check_dirs():
   # Check for all required directories and files
@@ -31,6 +33,38 @@ def setup_templates():
   env = jinja2.Environment(loader=jinja2.FileSystemLoader("layouts"), autoescape=jinja2.select_autoescape(["html", "xml"]))
   return env
 
+def setup_url(fname, pretty):
+  url = os.path.splitext(fname)[0]
+  if not pretty:
+    url += ".html" 
+  if url[0] == ".":
+    url = url[1:]
+  else:
+    url = '/' + url
+  return url
+
+def parse_pages(pretty):
+  page_dir = "pages"
+  pages_info = []
+  for _dir, subdir, files, in os.walk(page_dir):
+    for file_name in files:
+      if os.path.splitext(file_name)[1] == ".md":
+        rel_dir = os.path.relpath(_dir, page_dir)
+        rel_file = os.path.join(rel_dir, file_name)
+        url = setup_url(rel_file, pretty)
+        with open(os.path.join(page_dir, rel_file), "r") as f:
+          metadata, content = frontmatter.parse(f.read())
+          page = { 
+            "path": os.path.abspath(rel_file),
+            "url": url, 
+            "metadata": metadata, 
+            "content": content}
+          pages_info.append(page)
+          debug("======")
+          debug("Url is: %s" % page["url"])
+          debug("File is: %s" % page["path"])
+  return pages_info
+
 def gen_site():
 
   if not check_dirs():
@@ -46,12 +80,14 @@ def gen_site():
     print("No default template found!")
     return 
 
-  # Now, create our output directory if it doesn't exist.
-  curr_dir = os.listdir()
-  if not "output" in curr_dir:
-    os.mkdir("output")
+  # Now, create our output directory.
+  if "output" in os.listdir():
+    shutil.rmtree("output")
+  os.mkdir("output")
 
   # Go through the contents of the pages directory and generate an html file for each one.
+  # TODO: Change this to first gather metadata using parse_pages()
+  #       That way, you will have all pages available when generating (so you can easily create links).
   pages = os.listdir("pages")
   for page in pages:
     fname, fext = os.path.splitext("pages/%s" % page)
