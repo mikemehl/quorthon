@@ -3,6 +3,7 @@
 import yaml
 import jinja2
 import markdown
+import frontmatter
 import os
 
 def gen_site():
@@ -45,8 +46,11 @@ def gen_site():
       continue
     print("Writing %s..." % page)
     with open("pages/%s" % page, "r") as page_file:
-      content = markdown.markdown(page_file.read()) 
-      out = templates["default"].render(site=site, content=content) 
+      metadata, content = frontmatter.parse(page_file.read())
+      content = markdown.markdown(content)
+      cont_templ = jinja2.Template(content)
+      content = cont_templ.render(site=site, page=metadata)
+      out = templates["default"].render(site=site, content=content, page=metadata) 
       name = page.split(".")[0]
       with open("output/%s%s" % (name, ".html"), "w") as out_file:
         out_file.write(out)
