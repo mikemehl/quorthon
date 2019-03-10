@@ -44,8 +44,32 @@ def parse_pages():
       fname = os.path.join(_dir, file_name)
       page = PageData(fname)
       pages_info.append(page)
-      debug(page)
   return pages_info
+
+def gen_page(page, site, config, env):
+  if page.file_ext == ".md":
+    info("Writing %s..." % page.fname)
+    content = markdown.markdown(page.content)
+    cont_templ = jinja2.Template(content)
+    content = cont_templ.render(site=site, page=page.metadata)
+    if page.metadata["layout"]:
+      templ = env.get_template(page.metadata["layout"] + ".html")
+    else:
+      templ = env.get_template("default.html")
+    out = templ.render(site=site, content=content, page=page.metadata)
+    if PageData.pretty:
+      outdir = os.path.join(os.getcwd(), "output")
+      outdir = os.path.join(outdir, page.url[1:])
+      if not os.path.isdir(outdir):
+        os.makedirs(outdir)
+      with open("output/%s/index.html" % page.url, "w") as f:
+        f.write(out)
+    else:     
+      warning("UGLY URLS NOT YET SUPPORTED")
+  if page.file_ext == ".html":
+    warning("HTML NOT YET SUPPORTED")
+  return
+
 
 def gen_site():
 
@@ -67,37 +91,10 @@ def gen_site():
     shutil.rmtree("output")
   os.mkdir("output")
 
-  # Go through the contents of the pages directory and generate an html file for each one.
-  # TODO: Change this to first gather metadata using parse_pages()
-  #       That way, you will have all pages available when generating (so you can easily create links).
-  # OLD METHOD:
-  #	pages = os.listdir("pages")
-  #	for page in pages:
-  #	  fname, fext = os.path.splitext("pages/%s" % page)
-  #	  if not fext == ".md":
-  #	    continue
-  #	  print("Writing %s..." % page)
-  #	  with open("pages/%s" % page, "r") as page_file:
-  #	    metadata, content = frontmatter.parse(page_file.read())
-  #	    content = markdown.markdown(content)
-  #	    cont_templ = jinja2.Template(content)
-  #	    content = cont_templ.render(site=site, page=metadata)
-  #	    if metadata["layout"]:
-  #	      templ = env.get_template(metadata["layout"] + ".html")
-  #	    else:
-  #	      templ = env.get_template("default.html")
-  #	    out = templ.render(site=site, content=content, page=metadata) 
-  #	    name = page.split(".")[0]
-  #	    if config["pretty_urls"] and not name == "index":
-  #	      os.mkdir("output/%s" % name)
-  #	      with open("output/%s/index.html" % (name), "w") as out_file:
-  #	        out_file.write(out)
-  #	    else:
-  #	      with open("output/%s%s" % (name, ".html"), "w") as out_file:
-  #	        out_file.write(out)
+  # Generate the pages.
   pages = parse_pages()
   for page in pages:
-    page.gen_page(site)
+    gen_page(page, site, config, env)
 
   print("Site generated...")
 
