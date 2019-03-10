@@ -5,4 +5,11 @@
 <body>
 {{ content }}
 </body>
+<footer>
+<ul>
+{% for book in site.data.books %}
+  <li>{{ book.title }} by {{ book.author }}</li>
+{% endfor %}
+</footer>
+</ul>
 </html>

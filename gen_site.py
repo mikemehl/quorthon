@@ -6,6 +6,7 @@ import markdown
 import frontmatter
 import os
 import shutil
+import glob
 from PageData import PageData
 from log import info, error, debug
 
@@ -32,6 +33,18 @@ def read_config():
       PageData.pretty = config["pretty_urls"]
     return config, site
 
+def parse_data():
+   if not os.path.isdir("data"):
+     return None 
+   yaml_files = glob.glob("data/*.yml")
+   data = dict()
+   for data_file in yaml_files:
+     name = os.path.basename(data_file)
+     name = os.path.splitext(name)[0]
+     with open(data_file, "r") as f:
+       data[name] = yaml.load(f)
+   return data
+       
 def setup_templates():
   env = jinja2.Environment(loader=jinja2.FileSystemLoader("layouts"))
   return env
@@ -76,7 +89,7 @@ def gen_site():
   if not check_dirs():
     return
 
-  # Read config options and site variable.
+  # Read config options and site variable
   config, site = read_config()
 
   # Open templates and have them ready to go
@@ -85,6 +98,10 @@ def gen_site():
   if not "default.html" in env.list_templates():
     print("No default template found!")
     return 
+
+  # Load all data into our site variable
+  data = parse_data()
+  site["data"] = data
 
   # Now, create our output directory.
   if "output" in os.listdir():
