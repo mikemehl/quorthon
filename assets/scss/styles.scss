@@ -1,0 +1,17 @@
+$bg_color: #000000;
+$container_color: #333333;
+$txt_color: #CCCCCC;
+$spec_width: 80%;
+$max_width: 460px;
+
+body {
+  background-color: $bg_color;
+}
+
+.container {
+  background-color: $container_color;
+  color: $txt_color;
+  width: $spec_width;
+  max-width: $max_width;
+  margin: 0 auto;
+}

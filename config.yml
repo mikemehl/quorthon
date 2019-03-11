@@ -1,4 +1,5 @@
 ---
 site:
   title: "Test Site"
+  base_url: "http://127.0.0.1:8000"
 pretty_urls: True 

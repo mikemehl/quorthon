@@ -4,6 +4,7 @@ import yaml
 import jinja2
 import markdown
 import frontmatter
+import sass
 import os
 import shutil
 import glob
@@ -83,6 +84,17 @@ def gen_page(page, site, config, env):
     warning("HTML NOT YET SUPPORTED")
   return
 
+def compile_sass():
+  IN_DIR = "output/assets/scss"
+  OUT_DIR = "output/assets/css"
+  if not os.path.isdir(IN_DIR):
+    return
+  if not os.path.exists(OUT_DIR):
+    os.mkdir(OUT_DIR)
+  sass.compile(dirname=("assets/scss", "assets/css"))
+  shutil.rmtree(IN_DIR)
+  return
+
 
 def gen_site():
 
@@ -107,6 +119,12 @@ def gen_site():
   if "output" in os.listdir():
     shutil.rmtree("output")
   os.mkdir("output")
+
+  # Copy over files in the assets directory
+  shutil.copytree("assets", "output/assets")
+
+  # Compile any SASS found.
+  compile_sass()
 
   # Generate the pages.
   pages = parse_pages()
