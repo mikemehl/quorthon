@@ -11,6 +11,12 @@ import glob
 from PageData import PageData
 from log import info, error, debug
 
+DEFAULT_CONFIG = "---\n\
+site:\n\
+  title: \"Test Site\"\n\
+  base_url: \"http://127.0.0.1:8000\"\n\
+pretty_urls: True "
+
 def check_dirs():
   # Check for all required directories and files
   curr_dir = os.listdir() 
@@ -67,9 +73,12 @@ def gen_page(page, site, config, env):
     cont_templ = jinja2.Template(content)
     content = cont_templ.render(site=site, page=page.metadata)
     if page.metadata["layout"]:
-      templ = env.get_template(page.metadata["layout"] + ".html")
+      template_name = page.metadata["layout"] + ".html"
     else:
-      templ = env.get_template("default.html")
+      template_name = "default.html"
+    tmpl = env.get_template(template_name)
+    if not templ:
+      error("Template %s not found!" % page.metadata["layout"])
     out = templ.render(site=site, content=content, page=page.metadata)
     if PageData.pretty:
       outdir = os.path.join(os.getcwd(), "output")
@@ -94,6 +103,22 @@ def compile_sass():
   sass.compile(dirname=("assets/scss", "assets/css"))
   shutil.rmtree(IN_DIR)
   return
+
+def init_dirs():
+  curr_dir = os.listdir() 
+  if not "config.yml" in curr_dir:
+    print("Creating config.yml...")
+    with open("config.yml", "w") as config_yml:
+      config_yml.write(DEFAULT_CONFIG)
+  if not "layouts" in curr_dir:
+    print("Creating layouts directory...")
+    os.mkdir("layouts")
+  if not "pages" in curr_dir:
+    print("Creating pages directory...")
+    os.mkdir("pages")
+  if not "assets" in curr_dir:
+    print("Creating assets directory...")
+    os.mkdir("assets")
 
 
 def gen_site():
@@ -135,3 +160,4 @@ def gen_site():
 
 if __name__ == "__main__":
   gen_site()
+
