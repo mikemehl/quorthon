@@ -20,4 +20,4 @@ Quorthon is meant to be run as a command line tool. There are three commands:
 
 A small sample site is included as an example.
 
-Quorthon is named after the legendary musician of Bathory fame, because I was listening to too much black metal whie working on this.
+Quorthon is named after the legendary musician of Bathory fame, because I was listening to too much black metal while working on this.
